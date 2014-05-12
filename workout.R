@@ -4,12 +4,20 @@ get_workout_data <- function() {
     require(lubridate)
     googleURL <- "https://docs.google.com/spreadsheet/pub?key=0At_x4S00cjjPdEs2bE1wT2F2UVpDZlAyZ0Fua2gzX2c&output=csv"
     column_class <- c("character", "factor", "character", "character", "numeric")
+    ## Download data from google docs
     workout_data<-read.csv(textConnection(getURL(googleURL)), na.strings="-", 
                            colClasses=column_class)
+    ## Fix the column names
     names(workout_data) <- tolower(names(workout_data))
+    
+    ## convert to datetime and duration
     workout_data$datetime <- strptime(paste(workout_data$date,workout_data$start.time), format="%m/%d/%Y %H:%M:%s")
     workout_data$duration <- as.duration(hms(workout_data$duration))
-    workout_data$week <- as.Date(cut(data$datetime,breaks="week",start.on.monday=0))
+    
+    ## Find week information
+    workout_data$week <- as.Date(cut(workout_data$datetime,breaks="week",start.on.monday=0))
+    
+    ## Return only useful columns
     columns <- c("sport", "duration", "distance", "datetime", "week")
     final_data <- workout_data[columns]
     final_data
