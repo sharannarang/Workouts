@@ -36,16 +36,36 @@ generate_month_barplot <- function() {
     barplot(sapply(temp_data,function(x) sum_d(x[,"duration"])))
 }
 
+sum_d <- function(durations) {
+    total <- 0
+    for (d in durations) {
+        total <- total + d
+    }
+    as.duration(total)
+}
+
 generate_barplot <- function(period="week") {
     require(ggplot2)
+    require(lubridate)
     data <- get_workout_data()
+    total <- sum(data$duration)
+    current_date <- ymd(Sys.Date())
+    start_date <- ymd("2014/1/1")
+    diff_date <- interval(start_date,current_date)
     if (period == "month"){
-        ggplot(data=data[order(data$sport),], aes(x=month(datetime), y=duration, fill=sport)) + 
-            geom_bar(stat="identity")
+        ## %/% operetor is used when you don't want the answer as a fraction. 
+        ## 6 %/% 5 = 1 6 / 5 = 1.2
+        months <- diff_date %/% months(1)
+        average <- total/months
+        average <- average/(60*60)        
+        ggplot(data=data[order(data$sport),], aes(x=month(datetime), y=duration/(60*60), fill=sport)) + 
+            geom_bar(stat="identity") + ylab("Duration (Hours)") + geom_hline(yintercept=average, aes(color="Average"))
     }
     else {
-        ggplot(data=data[order(data$sport),], aes(x=week, y=duration, fill=sport)) + 
-            geom_bar(stat="identity")
-        
+        weeks <- diff_date/eweeks()
+        average <- total/weeks
+        average <- average/(60*60)
+        ggplot(data=data[order(data$sport),], aes(x=week, y=duration/(60*60), fill=sport)) + 
+            geom_bar(stat="identity") + ylab("Duration (Hours)") + geom_hline(yintercept=average, aes(color="Average"))
     }
 }
