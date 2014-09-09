@@ -32,7 +32,7 @@ generate_sport_barplot <- function() {
 
 generate_month_barplot <- function() {
     data <- get_workout_data()
-    temp_data <- split(data,month(data$datetime, label=TRUE))
+    temp_data <- split(data,month(data$datetime, label=TRUE), drop=T)
     barplot(sapply(temp_data,function(x) sum_d(x[,"duration"])))
 }
 
@@ -47,6 +47,7 @@ sum_d <- function(durations) {
 generate_barplot <- function(period="week") {
     require(ggplot2)
     require(lubridate)
+    require(scales)
     data <- get_workout_data()
     total <- sum(data$duration)
     current_date <- ymd(Sys.Date())
@@ -58,8 +59,9 @@ generate_barplot <- function(period="week") {
         months <- diff_date %/% months(1)
         average <- total/months
         average <- average/(60*60)        
-        ggplot(data=data[order(data$sport),], aes(x=month(datetime), y=duration/(60*60), fill=sport)) + 
-            geom_bar(stat="identity") + ylab("Duration (Hours)") + geom_hline(yintercept=average, aes(color="Average"))
+        ggplot(data=data[order(data$sport),], aes(x=month(datetime, label=TRUE), y=duration/(60*60), fill=sport)) + 
+            geom_bar(stat="identity") + ylab("Duration (Hours)") + geom_hline(yintercept=average, aes(color="Average")) + xlab("Month")        
+        
     }
     else {
         weeks <- diff_date/eweeks()
@@ -69,3 +71,40 @@ generate_barplot <- function(period="week") {
             geom_bar(stat="identity") + ylab("Duration (Hours)") + geom_hline(yintercept=average, aes(color="Average"))
     }
 }
+
+generate_dPlot_month <- function() {
+    generate_rchart("dPlot")
+}
+
+generate_nPlot_month <- function() {
+    generate_rchart("nPlot")
+}
+
+generate_rchart <- function(plot="nPlot") {
+    library(reshape2)
+    library(rCharts)
+    workout <- get_workout_data()
+    workout$month <- month(workout$datetime, label=T)
+    workout.melt <- melt(workout, id.vars = c("month", "sport"), measure.vars = c("duration"))
+    workout.cast <- dcast(workout.melt, month+sport~variable, sum)    
+    workout.cast$duration <- workout.cast$duration/(60*60)
+    if (plot == "nPlot") {
+        n1 <- nPlot(duration~month, group = "sport", data=workout.cast, type='multiBarChart')
+        n1    
+    }
+    else if (plot == "dPlot") {
+        d1 <- dPlot(y = "month", x = "duration", data =workout.cast, groups= "sport", type="bar")
+        d1$yAxis(type="addCategoryAxis", orderRule="Month")
+        d1$xAxis(type="addMeasureAxis")
+        d1$legend(
+            x = 0,
+            y = 0,
+            width = 500,
+            height = 75,
+            horizontalAlign = "right"
+        )
+        d1
+    }
+}
+
+
