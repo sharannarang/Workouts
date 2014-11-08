@@ -2,6 +2,7 @@ get_workout_data <- function() {
     
     require(RCurl)
     require(lubridate)
+    require(rjson)
     googleURL <- "https://docs.google.com/spreadsheet/pub?key=0At_x4S00cjjPdEs2bE1wT2F2UVpDZlAyZ0Fua2gzX2c&output=csv"
     column_class <- c("character", "factor", "character", "character", "numeric")
     ## Download data from google docs
@@ -72,18 +73,21 @@ generate_barplot <- function(period="week") {
     }
 }
 
-generate_dPlot_month <- function() {
-    generate_rchart("dPlot")
+generate_dPlot_month <- function(sport = "All") {
+    generate_rchart("dPlot", sport)
 }
 
-generate_nPlot_month <- function() {
-    generate_rchart("nPlot")
+generate_nPlot_month <- function(sport = "All") {
+    generate_rchart("nPlot", sport)
 }
 
-generate_rchart <- function(plot="nPlot") {
+generate_rchart <- function(plot="nPlot", sport = "All") {
     library(reshape2)
     library(rCharts)
     workout <- get_workout_data()
+    if (sport != "All") {
+        workout <- workout[workout$sport == sport, ]        
+    }
     workout$month <- month(workout$datetime, label=T)
     workout.melt <- melt(workout, id.vars = c("month", "sport"), measure.vars = c("duration"))
     workout.cast <- dcast(workout.melt, month+sport~variable, sum)    
@@ -94,7 +98,7 @@ generate_rchart <- function(plot="nPlot") {
     }
     else if (plot == "dPlot") {
         d1 <- dPlot(y = "month", x = "duration", data =workout.cast, groups= "sport", type="bar")
-        d1$yAxis(type="addCategoryAxis", orderRule="Month")
+        d1$yAxis(type="addCategoryAxis")
         d1$xAxis(type="addMeasureAxis")
         d1$legend(
             x = 0,

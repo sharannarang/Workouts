@@ -5,13 +5,13 @@ workout <- get_workout_data()
 options(RCHART_LIB = 'dimple')
 
 ## Define the UI for the application
-shinyUI(pageWithSidebar(
-    headerPanel("Workout plots!"),
-    sidebarPanel(
-        #selectInput('select', label = h4("select a sport"), choices = list(levels(workout$sport)))
-    ),
-    mainPanel(
-        h4("test"),
-        showOutput("mychart", "dimple")
+shinyUI(pageWithSidebar(h2("Workout plots!"),
+            sidebarPanel(
+                selectInput('sport', label = h4("select a sport"), choices = as.list(c("All", as.character(levels(workout$sport)))))
+            ),
+            mainPanel(
+                     showOutput("mychart", "dimple")
+            )
     )
-))
+    
+)
