@@ -9,7 +9,7 @@ shinyServer(function(input, output) {
     output$mychart <- renderChart({
 #         p <- generate_dPlot_month()
 #         p$set(dom="mychart")
-        p <- generate_dPlot_month(input$sport)
+        p <- generate_dPlot_month(input$sport, input$year)
         p$set(dom="mychart")
         return(p)
     })

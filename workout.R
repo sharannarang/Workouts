@@ -73,21 +73,22 @@ generate_barplot <- function(period="week") {
     }
 }
 
-generate_dPlot_month <- function(sport = "All") {
-    generate_rchart("dPlot", sport)
+generate_dPlot_month <- function(sport = "All", year=2014) {
+    generate_rchart("dPlot", sport, year)
 }
 
-generate_nPlot_month <- function(sport = "All") {
-    generate_rchart("nPlot", sport)
+generate_nPlot_month <- function(sport = "All", year=2014) {
+    generate_rchart("nPlot", sport, year)
 }
 
-generate_rchart <- function(plot="nPlot", sport = "All") {
+generate_rchart <- function(plot="nPlot", sport = "All", year = 2014) {
     library(reshape2)
     library(rCharts)
     workout <- get_workout_data()
     if (sport != "All") {
         workout <- workout[workout$sport == sport, ]        
     }
+    workout <- workout[year(workout$datetime)==year,]
     workout$month <- month(workout$datetime, label=T)
     workout.melt <- melt(workout, id.vars = c("month", "sport"), measure.vars = c("duration"))
     workout.cast <- dcast(workout.melt, month+sport~variable, sum)    
